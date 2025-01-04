@@ -1,7 +1,38 @@
-// lib/database.js
-
 const sqlite3 = require("sqlite3");
 const { open } = require("sqlite");
+const getEmployees = async () => {
+  const db = await open({
+    filename: "./dev.db",
+    driver: sqlite3.Database,
+  });
+
+  try {
+    // Query to fetch all employee names
+    const query = "SELECT name FROM Employees";
+    const employees = await db.all(query);
+    await db.close();
+
+    return employees; // Returns an array of employees
+  } catch (error) {
+    console.error("Error fetching employees:", error);
+    await db.close();
+    throw error;
+  }
+};
+
+const insertEmployee = async (name, hash) => {
+  const db = await open({
+    filename: "./dev.db",
+    driver: sqlite3.Database,
+  });
+
+  const stmt = await db.prepare(
+    "INSERT INTO Employees (name, hash) VALUES (?, ?)"
+  );
+  await stmt.run(name, hash);
+  await stmt.finalize();
+  await db.close();
+};
 
 const downGrade = async (sessionID) => {
   const db = await open({
@@ -9,7 +40,7 @@ const downGrade = async (sessionID) => {
     driver: sqlite3.Database,
   });
 
-  const query = `UPDATE SessionsTable SET admin = 0 WHERE sessionID = ?`;
+  const query = `UPDATE Sessions SET admin = 0 WHERE sessionID = ?`;
   const result = await db.run(query, sessionID);
 
   console.log(`Rows updated: ${result.changes}`);
@@ -21,7 +52,7 @@ const insertSession = async (sessionID, admin, expiresAt) => {
   });
 
   const stmt = await db.prepare(
-    "INSERT INTO sessionsTable (sessionID, admin,expiresAt) VALUES (?, ?,?)"
+    "INSERT INTO Sessions (sessionID, admin,expiresAt) VALUES (?, ?,?)"
   );
   await stmt.run(sessionID, admin, expiresAt);
   console.log(`Session with ID ${sessionID} inserted.`);
@@ -35,7 +66,7 @@ const getPermissionLvl = async (sessionID) => {
     driver: sqlite3.Database,
   });
 
-  const query = `SELECT expiresAt, admin FROM sessionsTable WHERE sessionID = ?`;
+  const query = `SELECT expiresAt, admin FROM Sessions WHERE sessionID = ?`;
   const result = await db.get(query, sessionID);
 
   if (!result) {
@@ -50,7 +81,7 @@ const getPermissionLvl = async (sessionID) => {
   if (expiresAt < now) {
     console.log("Session has expired.");
     const deleteStmt = await db.prepare(
-      "DELETE FROM sessionsTable WHERE sessionID = ?"
+      "DELETE FROM Sessions WHERE sessionID = ?"
     );
     await deleteStmt.run(sessionID);
     await deleteStmt.finalize();
@@ -64,4 +95,10 @@ const getPermissionLvl = async (sessionID) => {
 };
 
 // Export the functions
-module.exports = { insertSession, getPermissionLvl, downGrade };
+module.exports = {
+  insertSession,
+  getPermissionLvl,
+  downGrade,
+  insertEmployee,
+  getEmployees,
+};

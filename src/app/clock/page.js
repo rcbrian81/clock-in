@@ -73,16 +73,16 @@ export default function Clock() {
       }`}
     >
       {!showKeypad ? (
-        <div className="space-y-6">
+        <div className="space-y-6 h-full w-full">
           <button
             onClick={() => handleButtonClick("clock-in")}
-            className="w-64 h-64 bg-green-500 text-white font-bold text-2xl rounded-lg shadow-lg hover:bg-green-600 focus:outline-none focus:ring-4 focus:ring-green-300"
+            className="w-1/3 h-64 bg-green-500 text-white font-bold text-2xl rounded-lg shadow-lg hover:bg-green-600 focus:outline-none focus:ring-4 focus:ring-green-300"
           >
             Clock-In
           </button>
           <button
             onClick={() => handleButtonClick("clock-out")}
-            className="w-64 h-64 bg-red-500 text-white font-bold text-2xl rounded-lg shadow-lg hover:bg-red-600 focus:outline-none focus:ring-4 focus:ring-red-300"
+            className="w-1/3 h-64 bg-red-500 text-white font-bold text-2xl rounded-lg shadow-lg hover:bg-red-600 focus:outline-none focus:ring-4 focus:ring-red-300"
           >
             Clock-Out
           </button>

@@ -13,13 +13,40 @@ const createDatabase = async () => {
 
   // Create the sessionsTable if it doesn't exist
   await db.exec(`
-    CREATE TABLE IF NOT EXISTS sessionsTable (
-      sessionID TEXT PRIMARY KEY,
-      admin BOOLEAN,
-      createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
-      expiresAt DATETIME
-    )
-  `);
+  CREATE TABLE IF NOT EXISTS Sessions (
+    sessionID TEXT PRIMARY KEY,
+    admin BOOLEAN,
+    createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+    expiresAt DATETIME
+  )
+`);
+
+  await db.exec(`
+  CREATE TABLE IF NOT EXISTS Employees (
+    id INTEGER PRIMARY KEY,
+    name TEXT NOT NULL,
+    hash TEXT NOT NULL
+  )
+`);
+
+  await db.exec(`
+  CREATE TABLE IF NOT EXISTS ClockIn (
+    id INTEGER PRIMARY KEY,
+    employeeId INTEGER NOT NULL,
+    timeStamp DATETIME NOT NULL,
+    FOREIGN KEY (employeeId) REFERENCES Employees(id)
+  )
+`);
+
+  await db.exec(`
+  CREATE TABLE IF NOT EXISTS WorkTimes (
+    id INTEGER PRIMARY KEY,
+    employeeId INTEGER NOT NULL,
+    clockIn DATETIME NOT NULL,
+    clockOut DATETIME,
+    FOREIGN KEY (employeeId) REFERENCES Employees(id)
+  )
+`);
 
   console.log("Database and sessionsTable created!");
   await db.close();

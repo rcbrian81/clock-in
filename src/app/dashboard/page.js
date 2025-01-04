@@ -38,7 +38,7 @@ export default async function Dashboard() {
             Reports
           </button>
         </Link>
-        <Link href="/administration">
+        <Link href="/admin">
           <button className="w-64 px-6 py-3 text-lg font-medium text-white bg-red-500 rounded-lg shadow-lg hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-300">
             Administration
           </button>
