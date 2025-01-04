@@ -1,25 +1,24 @@
 "use client";
 import { useState, useEffect } from "react";
+import RedirectButton from "../components/RedirectButton";
 
 export default function Admin() {
   const [employees, setEmployees] = useState([]);
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
-
-  useEffect(() => {
-    async function fetchEmployees() {
-      try {
-        const response = await fetch("/api/employees/get");
-        if (!response.ok) {
-          throw new Error("Failed to fetch employees");
-        }
-        const data = await response.json();
-        setEmployees(data);
-      } catch (error) {
-        console.error(error);
+  async function fetchEmployees() {
+    try {
+      const response = await fetch("/api/employees/get");
+      if (!response.ok) {
+        throw new Error("Failed to fetch employees");
       }
+      const data = await response.json();
+      setEmployees(data);
+    } catch (error) {
+      console.error(error);
     }
-
+  }
+  useEffect(() => {
     fetchEmployees();
   }, []);
 
@@ -62,7 +61,6 @@ export default function Admin() {
   return (
     <div className="max-w-4xl mx-auto p-6 font-sans">
       <h1 className="text-3xl font-bold text-center mb-8">Manager Dashboard</h1>
-
       {/* Registration Form */}
       <div className="bg-white shadow-md rounded-lg p-6 mb-8">
         <h2 className="text-xl font-semibold mb-4">Register New Employee</h2>
@@ -104,14 +102,13 @@ export default function Admin() {
           </button>
         </form>
       </div>
-
       {/* Employee List */}
       <div className="bg-white shadow-md rounded-lg p-6">
         <h2 className="text-xl font-semibold mb-4">Employees</h2>
-        <ul className="divide-y divide-gray-200">
-          {employees.map((employee) => (
+        <ul>
+          {employees.map((employee, index) => (
             <li
-              key={employee.id}
+              key={employee.id || index}
               className="py-2 flex justify-between items-center"
             >
               <span className="font-medium text-gray-800">{employee.name}</span>
@@ -120,6 +117,10 @@ export default function Admin() {
           ))}
         </ul>
       </div>
+      <div className="mb-8 flex justify-end">
+        <RedirectButton to="/dashboard" label="Go to Dashboard" />
+      </div>
+      ;
     </div>
   );
 }

@@ -39,17 +39,15 @@ export default function Clock() {
         body: JSON.stringify({ action: currentAction, password }),
       });
 
+      const data = await response.json();
+
       if (response.ok) {
-        alert(
-          `${
-            currentAction === "clock-in" ? "Clocked In" : "Clocked Out"
-          } successfully!`
-        );
-        setShowKeypad(false);
-        setPassword("");
+        alert(data.message || "Success!");
       } else {
-        alert("Invalid password. Please try again.");
+        alert(data.error || "Error occurred. Please try again.");
       }
+      setShowKeypad(false);
+      setPassword("");
     } catch (error) {
       console.error("Error during clock action:", error);
       alert("An error occurred. Please try again.");
@@ -78,7 +76,7 @@ export default function Clock() {
             onClick={() => handleButtonClick("clock-in")}
             className="w-1/3 h-64 bg-green-500 text-white font-bold text-2xl rounded-lg shadow-lg hover:bg-green-600 focus:outline-none focus:ring-4 focus:ring-green-300"
           >
-            Clock-In
+            Clock-Inx
           </button>
           <button
             onClick={() => handleButtonClick("clock-out")}

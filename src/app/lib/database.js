@@ -1,5 +1,73 @@
 const sqlite3 = require("sqlite3");
 const { open } = require("sqlite");
+const bcrypt = require("bcrypt");
+
+const verifyPassword = async (password) => {
+  const db = await open({
+    filename: "./dev.db",
+    driver: sqlite3.Database,
+  });
+
+  try {
+    const employees = await db.all("SELECT id, hash FROM Employees");
+    for (const employee of employees) {
+      if (await bcrypt.compare(password, employee.hash)) {
+        await db.close();
+        return { id: employee.id };
+      }
+    }
+    await db.close();
+    return null;
+  } catch (error) {
+    console.error("Error verifying password:", error);
+    await db.close();
+    throw error;
+  }
+};
+
+// Check if employee is clocked in
+const isEmployeeClockedIn = async (employeeId) => {
+  const db = await open({
+    filename: "./dev.db",
+    driver: sqlite3.Database,
+  });
+
+  try {
+    const result = await db.get(
+      "SELECT id FROM ClockIn WHERE employeeId = ?",
+      employeeId
+    );
+    await db.close();
+    return !!result; // Returns true if an entry exists
+  } catch (error) {
+    console.error("Error checking clock-in status:", error);
+    await db.close();
+    throw error;
+  }
+};
+
+// Add a clock-in record
+const clockInEmployee = async (employeeId) => {
+  const db = await open({
+    filename: "./dev.db",
+    driver: sqlite3.Database,
+  });
+
+  try {
+    const timeStamp = new Date().toISOString();
+    await db.run(
+      "INSERT INTO ClockIn (employeeId, timeStamp) VALUES (?, ?)",
+      employeeId,
+      timeStamp
+    );
+    await db.close();
+  } catch (error) {
+    console.error("Error clocking in employee:", error);
+    await db.close();
+    throw error;
+  }
+};
+
 const getEmployees = async () => {
   const db = await open({
     filename: "./dev.db",
@@ -94,11 +162,13 @@ const getPermissionLvl = async (sessionID) => {
   return result.admin + 1;
 };
 
-// Export the functions
 module.exports = {
   insertSession,
   getPermissionLvl,
   downGrade,
   insertEmployee,
   getEmployees,
+  verifyPassword,
+  isEmployeeClockedIn,
+  clockInEmployee,
 };
