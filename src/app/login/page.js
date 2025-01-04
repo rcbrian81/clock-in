@@ -1,87 +1,34 @@
-"use client";
-import { useRouter, redirect } from "next/navigation";
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
+import { getPermissionLvl } from "../lib/database";
+import { downGrade } from "../lib/database";
+import LoginPage from "../components/login";
 
-export default function Login() {
-  const router = useRouter();
+export default async function Login() {
+  let _clockButton = false;
+  const cookie = await cookies();
+  const sessionId = cookie.get("session_id")?.value;
+  console.log(sessionId);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault(); // Prevent form default submission
-    const username = e.target.username.value;
-    const password = e.target.password.value;
+  if (!sessionId) {
+    // Redirect if there's no session ID in cookies
+    console.log("No sessionId Found.");
+  }
 
-    try {
-      const response = await fetch("/api/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ username, password }),
-      });
+  const permissionLevel = await getPermissionLvl(sessionId);
+  console.log(permissionLevel);
 
-      if (response.ok) {
-        const data = await response.json();
-        alert("Login successful!");
-        router.push("/dashboard");
-        // Redirect or perform further actions based on login success
-      } else {
-        alert("Login failed. Please check your credentials.");
-      }
-    } catch (error) {
-      console.error("Error during login:", error);
-      alert("An error occurred. Please try again.");
-    }
-  };
+  if (permissionLevel == 1) {
+    _clockButton = true;
+    //redirect("/clock");
+  } else if (permissionLevel == 2) {
+    redirect("/dashboard");
+  }
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100">
-      <div className="w-full max-w-md bg-white rounded-lg shadow-md p-6">
-        <h1 className="text-2xl font-bold text-center text-gray-800 mb-6">
-          Admin Login
-        </h1>
-        <form onSubmit={handleSubmit}>
-          <div className="mb-4">
-            <label
-              className="block text-sm font-medium text-gray-700 mb-1"
-              htmlFor="username"
-            >
-              Username
-            </label>
-            <input
-              type="text"
-              id="username"
-              name="username"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
-              placeholder="Enter your username"
-              required
-            />
-          </div>
-          <div className="mb-6">
-            <label
-              className="block text-sm font-medium text-gray-700 mb-1"
-              htmlFor="password"
-            >
-              Password
-            </label>
-            <input
-              type="password"
-              id="password"
-              name="password"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
-              placeholder="Enter your password"
-              required
-            />
-          </div>
-          <button
-            type="submit"
-            className="w-full py-2 px-4 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75"
-          >
-            Login
-          </button>
-        </form>
-        <p className="mt-4 text-sm text-center text-gray-600">
-          For support, contact the administrator.
-        </p>
-      </div>
+    <div>
+      <h1>Hello</h1>
+      <LoginPage clockButton={_clockButton} />
     </div>
   );
 }

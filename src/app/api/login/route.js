@@ -30,7 +30,7 @@ export async function POST(req) {
       httpOnly: true,
       maxAge: 60 * durationInMinutes,
     }); // 1 day
-    insertSession(sessionId, expiresAt);
+    insertSession(sessionId, 1, expiresAt);
     return response;
   } catch (error) {
     console.error(error);

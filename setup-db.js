@@ -15,6 +15,7 @@ const createDatabase = async () => {
   await db.exec(`
     CREATE TABLE IF NOT EXISTS sessionsTable (
       sessionID TEXT PRIMARY KEY,
+      admin BOOLEAN,
       createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
       expiresAt DATETIME
     )
