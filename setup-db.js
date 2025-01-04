@@ -25,7 +25,7 @@ const createDatabase = async () => {
   CREATE TABLE IF NOT EXISTS Employees (
     id INTEGER PRIMARY KEY,
     name TEXT NOT NULL,
-    hash TEXT NOT NULL
+    hash TEXT NOT NULL UNIQUE
   )
 `);
 

@@ -15,15 +15,21 @@ export async function POST(req) {
       );
     }
 
-    // Hash the password
-    const saltRounds = 10;
-    const hashedPassword = await bcrypt.hash(password.toString(), saltRounds);
+    // // Hash the password
+    // const saltRounds = 10;
+    // const hashedPassword = await bcrypt.hash(password.toString(), saltRounds);
 
     // Save the employee to the database
     console.log(name);
     console.log("Registered new Employee.");
-    insertEmployee(name, hashedPassword);
+    const result = insertEmployee(name, password);
 
+    if (result == "error:match") {
+      return NextResponse.json(
+        { message: "Failed To Register", name },
+        { status: 400 }
+      );
+    }
     return NextResponse.json(
       { message: "Employee registered successfully", name },
       { status: 201 }

@@ -2,6 +2,41 @@ const sqlite3 = require("sqlite3");
 const { open } = require("sqlite");
 const bcrypt = require("bcrypt");
 
+const clockOutEmployee = async (employeeId) => {
+  const db = await open({
+    filename: "./dev.db",
+    driver: sqlite3.Database,
+  });
+
+  try {
+    const clockInRecord = await db.get(
+      "SELECT timeStamp FROM ClockIn WHERE employeeId = ?",
+      employeeId
+    );
+
+    if (!clockInRecord) {
+      throw new Error("Employee is not currently clocked in.");
+    }
+
+    const clockInTime = clockInRecord.timeStamp;
+    const clockOutTime = new Date().toISOString();
+
+    await db.run(
+      "INSERT INTO WorkTimes (employeeId, clockIn, clockOut) VALUES (?, ?, ?)",
+      employeeId,
+      clockInTime,
+      clockOutTime
+    );
+
+    await db.run("DELETE FROM ClockIn WHERE employeeId = ?", employeeId);
+
+    await db.close();
+  } catch (error) {
+    console.error("Error clocking out employee:", error);
+    await db.close();
+    throw error;
+  }
+};
 const verifyPassword = async (password) => {
   const db = await open({
     filename: "./dev.db",
@@ -25,7 +60,6 @@ const verifyPassword = async (password) => {
   }
 };
 
-// Check if employee is clocked in
 const isEmployeeClockedIn = async (employeeId) => {
   const db = await open({
     filename: "./dev.db",
@@ -38,7 +72,7 @@ const isEmployeeClockedIn = async (employeeId) => {
       employeeId
     );
     await db.close();
-    return !!result; // Returns true if an entry exists
+    return !!result;
   } catch (error) {
     console.error("Error checking clock-in status:", error);
     await db.close();
@@ -46,7 +80,6 @@ const isEmployeeClockedIn = async (employeeId) => {
   }
 };
 
-// Add a clock-in record
 const clockInEmployee = async (employeeId) => {
   const db = await open({
     filename: "./dev.db",
@@ -75,12 +108,11 @@ const getEmployees = async () => {
   });
 
   try {
-    // Query to fetch all employee names
     const query = "SELECT name FROM Employees";
     const employees = await db.all(query);
     await db.close();
 
-    return employees; // Returns an array of employees
+    return employees;
   } catch (error) {
     console.error("Error fetching employees:", error);
     await db.close();
@@ -88,18 +120,42 @@ const getEmployees = async () => {
   }
 };
 
-const insertEmployee = async (name, hash) => {
+const insertEmployee = async (name, password) => {
   const db = await open({
     filename: "./dev.db",
     driver: sqlite3.Database,
   });
 
-  const stmt = await db.prepare(
-    "INSERT INTO Employees (name, hash) VALUES (?, ?)"
-  );
-  await stmt.run(name, hash);
-  await stmt.finalize();
-  await db.close();
+  try {
+    // Fetch all stored hashes from the database
+    const employees = await db.all("SELECT hash FROM Employees");
+
+    // Check if the password matches any existing hash
+    for (const employee of employees) {
+      const isMatch = await bcrypt.compare(password, employee.hash);
+      if (isMatch) {
+        throw new Error("Password is already in use by another employee.");
+        return "error:match";
+      }
+    }
+
+    // If no match, hash the new password
+    const saltRounds = 10;
+    const hash = await bcrypt.hash(password, saltRounds);
+
+    // Insert the new employee into the database
+    await db.run(
+      "INSERT INTO Employees (name, hash) VALUES (?, ?)",
+      name,
+      hash
+    );
+    console.log(`Employee ${name} added successfully.`);
+    await db.close();
+  } catch (error) {
+    console.error("Error inserting employee:", error.message);
+    await db.close();
+    throw error;
+  }
 };
 
 const downGrade = async (sessionID) => {
@@ -171,4 +227,5 @@ module.exports = {
   verifyPassword,
   isEmployeeClockedIn,
   clockInEmployee,
+  clockOutEmployee,
 };
