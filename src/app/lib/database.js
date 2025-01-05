@@ -1,6 +1,29 @@
 const sqlite3 = require("sqlite3");
 const { open } = require("sqlite");
 const bcrypt = require("bcrypt");
+const getWorkTimes = async () => {
+  const db = await open({
+    filename: "./dev.db",
+    driver: sqlite3.Database,
+  });
+
+  try {
+    const result = await db.all(
+      ` SELECT e.name, w.employeeID, w.clockIn, w.clockOut FROM WorkTimes w LEFT JOIN Employees e ON w.employeeID == e.id ORDER BY w.clockIn ASC;`
+    );
+    await db.close();
+    if (!result) {
+      throw new Error("Error In Retriving worktimes.");
+    }
+
+    console.log(result);
+    return result;
+  } catch (error) {
+    console.error("database.js: Error quering for worktimes:", error);
+    await db.close();
+    throw error;
+  }
+};
 const getOnTheClock = async () => {
   const db = await open({
     filename: "./dev.db",
@@ -291,4 +314,6 @@ module.exports = {
   clockInEmployee,
   clockOutEmployee,
   getTotalHours,
+  getOnTheClock,
+  getWorkTimes,
 };
