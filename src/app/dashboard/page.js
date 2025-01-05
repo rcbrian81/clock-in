@@ -33,9 +33,9 @@ export default async function Dashboard() {
             Clock
           </button>
         </Link>
-        <Link href="/reports">
+        <Link href="/data">
           <button className="w-64 px-6 py-3 text-lg font-medium text-white bg-green-500 rounded-lg shadow-lg hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-300">
-            Reports
+            Data
           </button>
         </Link>
         <Link href="/admin">

@@ -8,7 +8,14 @@ export default function Clock() {
   const [currentAction, setCurrentAction] = useState(""); // 'clock-in' or 'clock-out'
   const [password, setPassword] = useState("");
   const router = useRouter();
-
+  const getSQLiteDateTime = (date = new Date()) => {
+    const pad = (num) => String(num).padStart(2, "0"); // Ensure two digits
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(
+      date.getDate()
+    )} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(
+      date.getSeconds()
+    )}`;
+  };
   const handleButtonClick = (action) => {
     setCurrentAction(action);
     setShowKeypad(true);
@@ -36,7 +43,11 @@ export default function Clock() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ action: currentAction, password }),
+        body: JSON.stringify({
+          action: currentAction,
+          password,
+          time_stamp: getSQLiteDateTime(),
+        }),
       });
 
       const data = await response.json();

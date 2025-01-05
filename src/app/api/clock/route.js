@@ -8,7 +8,7 @@ import {
 
 export async function POST(req) {
   try {
-    const { action, password } = await req.json();
+    const { action, password, time_stamp } = await req.json();
 
     if (!password || !["clock-in", "clock-out"].includes(action)) {
       return NextResponse.json(
@@ -38,7 +38,7 @@ export async function POST(req) {
       }
 
       // Clock in the employee
-      await clockInEmployee(employee.id);
+      await clockInEmployee(employee.id, time_stamp);
       return NextResponse.json(
         { message: `Clock-in successful! Welcome, ${employee.name}.` },
         { status: 200 }
@@ -57,7 +57,7 @@ export async function POST(req) {
       }
 
       // Clock out the employee
-      await clockOutEmployee(employee.id);
+      await clockOutEmployee(employee.id, time_stamp);
       return NextResponse.json(
         { message: `Clock-out successful! Goodbye, ${employee.name}.` },
         { status: 200 }

@@ -1,8 +1,70 @@
 const sqlite3 = require("sqlite3");
 const { open } = require("sqlite");
 const bcrypt = require("bcrypt");
+const getOnTheClock = async () => {
+  const db = await open({
+    filename: "./dev.db",
+    driver: sqlite3.Database,
+  });
 
-const clockOutEmployee = async (employeeId) => {
+  try {
+    const result = await db.all(
+      `SELECT e.name, c.timestamp FROM EMPLOYEES e  INNER JOIN ClockIn c ON e.id == c.employeeId;
+    `
+    );
+    await db.close();
+    if (!result) {
+      throw new Error("Error In Retriving Hours Worked.");
+    }
+
+    console.log(result);
+    return result;
+  } catch (error) {
+    console.error("database.js: Error quering for totalhours:", error);
+    await db.close();
+    throw error;
+  }
+};
+const getTotalHours = async () => {
+  const db = await open({
+    filename: "./dev.db",
+    driver: sqlite3.Database,
+  });
+
+  try {
+    const result = await db.all(
+      `SELECT 
+    e.name AS employeeName,
+    COALESCE(
+        SUM(
+            CAST(strftime('%s', w.clockOut) AS REAL) - CAST(strftime('%s', w.clockIn) AS REAL)
+        ) / 3600.0, 
+        0
+    ) AS totalHours
+FROM 
+    Employees e
+LEFT JOIN 
+    WorkTimes w ON e.id = w.employeeId
+GROUP BY 
+    e.id, e.name;
+
+
+    `
+    );
+    await db.close();
+    if (!result) {
+      throw new Error("Error In Retriving Hours Worked.");
+    }
+
+    console.log(result);
+    return result;
+  } catch (error) {
+    console.error("database.js: Error quering for totalhours:", error);
+    await db.close();
+    throw error;
+  }
+};
+const clockOutEmployee = async (employeeId, time_stamp) => {
   const db = await open({
     filename: "./dev.db",
     driver: sqlite3.Database,
@@ -19,7 +81,7 @@ const clockOutEmployee = async (employeeId) => {
     }
 
     const clockInTime = clockInRecord.timeStamp;
-    const clockOutTime = new Date().toISOString();
+    const clockOutTime = time_stamp;
 
     await db.run(
       "INSERT INTO WorkTimes (employeeId, clockIn, clockOut) VALUES (?, ?, ?)",
@@ -80,18 +142,18 @@ const isEmployeeClockedIn = async (employeeId) => {
   }
 };
 
-const clockInEmployee = async (employeeId) => {
+const clockInEmployee = async (employeeId, time_stamp) => {
   const db = await open({
     filename: "./dev.db",
     driver: sqlite3.Database,
   });
 
   try {
-    const timeStamp = new Date().toISOString();
+    //const timeStamp = new Date().toISOString();
     await db.run(
       "INSERT INTO ClockIn (employeeId, timeStamp) VALUES (?, ?)",
       employeeId,
-      timeStamp
+      time_stamp
     );
     await db.close();
   } catch (error) {
@@ -228,4 +290,5 @@ module.exports = {
   isEmployeeClockedIn,
   clockInEmployee,
   clockOutEmployee,
+  getTotalHours,
 };
